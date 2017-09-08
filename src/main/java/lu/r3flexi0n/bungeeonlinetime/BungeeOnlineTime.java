@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -138,11 +139,11 @@ public class BungeeOnlineTime extends Plugin {
         getProxy().getScheduler().schedule(this, new Runnable() {
             public void run() {
 
-                ArrayList<UUID> uuids = new ArrayList<UUID>();
+            	HashMap<UUID,String> uuids = new HashMap<UUID,String>();
                 for (ProxiedPlayer players : getProxy().getPlayers()) {
                     if (players.hasPermission("onlinetime.save")) {
                         if (players.getServer() != null && players.getServer().getInfo() != null && !disabledServers.contains(players.getServer().getInfo().getName())) {
-                            uuids.add(players.getUniqueId());
+                            uuids.put(players.getUniqueId(), players.getName());
                         }
                     }
                 }

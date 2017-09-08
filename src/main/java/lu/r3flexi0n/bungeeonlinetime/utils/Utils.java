@@ -1,13 +1,16 @@
 package lu.r3flexi0n.bungeeonlinetime.utils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+//import com.google.gson.JsonArray;
+//import com.google.gson.JsonObject;
+//import com.google.gson.JsonParser;
+
+import lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime;
+
+//import java.io.IOException;
+//import java.io.InputStreamReader;
+//import java.net.HttpURLConnection;
+//import java.net.MalformedURLException;
+//import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,27 +24,22 @@ public class Utils {
         return format.format(date);
     }
 
-    private static JsonParser jsonParser = new JsonParser();
+//    private static JsonParser jsonParser = new JsonParser();
 
-    public static String getName(UUID uuid) throws Exception {
-        URL url = new URL("https://api.mojang.com/user/profiles/" + uuid.toString().replace("-", "") + "/names");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-        JsonArray array = (JsonArray) jsonParser.parse(reader);
-        JsonObject object = (JsonObject) array.get(array.size() - 1);
-        connection.disconnect();
-        reader.close();
-        return object.get("name").getAsString();
-    }
+//    public static String getName(UUID uuid) throws Exception {
+//        URL url = new URL("https://api.mojang.com/user/profiles/" + uuid.toString().replace("-", "") + "/names");
+//        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//        InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+//        JsonArray array = new JsonArray();
+//        array.add(jsonParser.parse(reader));
+//        JsonObject object = array.get(array.size() - 1).getAsJsonObject();
+//        connection.disconnect();
+//        reader.close();
+//        return object.get("name").getAsString();
+//    }
 
     public static UUID getUUID(String name) throws Exception {
-        URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + name);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-        JsonObject object = (JsonObject) jsonParser.parse(reader);
-        connection.disconnect();
-        reader.close();
-        return convertUUID(object.get("id").getAsString());
+        return UUID.fromString(BungeeOnlineTime.mysql.getUuid(name));
     }
 
     public static UUID convertUUID(String uuid) {

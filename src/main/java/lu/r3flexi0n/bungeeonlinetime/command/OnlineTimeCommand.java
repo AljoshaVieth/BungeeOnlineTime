@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.logging.Logger;
+
 import lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime;
 import lu.r3flexi0n.bungeeonlinetime.utils.Utils;
 import net.md_5.bungee.api.CommandSender;
@@ -43,6 +45,7 @@ public class OnlineTimeCommand extends Command {
 
                 } catch (SQLException | ClassNotFoundException ex) {
                     player.sendMessage(BungeeOnlineTime.error);
+                    ex.printStackTrace();
                 }
             });
 
@@ -78,7 +81,7 @@ public class OnlineTimeCommand extends Command {
                         time = Integer.valueOf(data[1]);
                         hours = time / 60;
                         minutes = time % 60;
-                        name = Utils.getName(uuid);
+                        name = data[2];
                         messages.add(BungeeOnlineTime.topPlayers.replace("%PLAYER%", name).replace("%HOURS%", String.valueOf(hours)).replace("%MINUTES%", String.valueOf(minutes)));
                     }
 
@@ -90,6 +93,7 @@ public class OnlineTimeCommand extends Command {
 
                 } catch (Exception ex) {
                     player.sendMessage(BungeeOnlineTime.error);
+                    ex.printStackTrace();
                 }
             });
 
@@ -118,6 +122,7 @@ public class OnlineTimeCommand extends Command {
 
                 } catch (SQLException | ClassNotFoundException | IOException ex) {
                     player.sendMessage(BungeeOnlineTime.error);
+                    ex.printStackTrace();
                 }
             });
 
@@ -143,6 +148,7 @@ public class OnlineTimeCommand extends Command {
 
                 } catch (Exception ex) {
                     player.sendMessage(BungeeOnlineTime.error);
+                    ex.printStackTrace();
                 }
             });
 
@@ -171,6 +177,7 @@ public class OnlineTimeCommand extends Command {
 
                 } catch (Exception ex) {
                     player.sendMessage(BungeeOnlineTime.error);
+                    ex.printStackTrace();
                 }
             });
 

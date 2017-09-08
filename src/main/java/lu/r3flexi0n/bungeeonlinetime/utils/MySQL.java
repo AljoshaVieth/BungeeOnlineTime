@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class MySQL {
@@ -37,7 +39,7 @@ public class MySQL {
     }
 
     public void createTable() throws SQLException, ClassNotFoundException {
-        String sql = "CREATE TABLE IF NOT EXISTS bungeeonlinetime (uuid VARCHAR(36) UNIQUE, onlinetime INT);";
+        String sql = "CREATE TABLE IF NOT EXISTS newbungeeonlinetime (playername TINYTEXT, uuid VARCHAR(36) UNIQUE, onlinetime INT);";
 
         if (isClosed()) {
             openConnection();
@@ -51,8 +53,7 @@ public class MySQL {
     public int getOnlineTime(UUID uuid) throws SQLException, ClassNotFoundException {
 
         int onlineTime = 0;
-
-        String sql = "SELECT onlinetime FROM bungeeonlinetime WHERE uuid = '" + uuid + "';";
+        String sql = "SELECT onlinetime FROM newbungeeonlinetime WHERE uuid = '" + uuid + "';";
 
         if (isClosed()) {
             openConnection();
@@ -67,7 +68,6 @@ public class MySQL {
 
         resultset.close();
         statement.close();
-
         return onlineTime;
     }
 
@@ -75,7 +75,7 @@ public class MySQL {
 
         ArrayList<String> top = new ArrayList<String>();
 
-        String sql = "SELECT * FROM bungeeonlinetime ORDER BY onlinetime DESC LIMIT 10;";
+        String sql = "SELECT * FROM newbungeeonlinetime ORDER BY onlinetime DESC LIMIT 10;";
 
         if (isClosed()) {
             openConnection();
@@ -85,7 +85,7 @@ public class MySQL {
 
         ResultSet resultset = statement.executeQuery(sql);
         while (resultset.next()) {
-            top.add(resultset.getString("uuid") + "," + resultset.getString("onlinetime"));
+            top.add(resultset.getString("uuid") + "," + resultset.getString("onlinetime") + ","  + resultset.getString("playername"));
         }
 
         resultset.close();
@@ -95,7 +95,7 @@ public class MySQL {
     }
 
     public void resetOnlineTimes() throws SQLException, ClassNotFoundException {
-        String sql = "UPDATE bungeeonlinetime SET onlinetime = '0'";
+        String sql = "UPDATE newbungeeonlinetime SET onlinetime = '0'";
 
         if (isClosed()) {
             openConnection();
@@ -107,7 +107,7 @@ public class MySQL {
     }
 
     public void resetOnlineTime(UUID uuid) throws SQLException, ClassNotFoundException {
-        String sql = "UPDATE bungeeonlinetime SET onlinetime = '0' WHERE uuid = '" + uuid + "';";
+        String sql = "UPDATE newbungeeonlinetime SET onlinetime = '0' WHERE uuid = '" + uuid + "';";
 
         if (isClosed()) {
             openConnection();
@@ -118,18 +118,38 @@ public class MySQL {
         statement.close();
     }
 
-    public void addOnlineTime(ArrayList<UUID> uuidList) throws SQLException, ClassNotFoundException {
+    public void addOnlineTime(HashMap<UUID,String> uuidList) throws SQLException, ClassNotFoundException {
 
         if (isClosed()) {
             openConnection();
         }
 
         Statement statement = connection.createStatement();
-        for (UUID uuids : uuidList) {
-            statement.addBatch("INSERT INTO bungeeonlinetime (uuid, onlinetime) VALUES ('" + uuids + "','1') ON DUPLICATE KEY UPDATE onlinetime = onlinetime + 1;");
+        for (Map.Entry<UUID, String> uuids : uuidList.entrySet()) {
+            statement.addBatch("INSERT INTO newbungeeonlinetime (playername, uuid, onlinetime) VALUES ('" + uuids.getValue() + "','" + uuids.getKey() + "','1') ON DUPLICATE KEY UPDATE onlinetime = onlinetime + 1, `playername`= '" + uuids.getValue() + "';");
         }
         statement.executeBatch();
         statement.close();
+    }
+    public String getUuid(String playername) throws SQLException, ClassNotFoundException {
+
+        String uuid = "";
+        String sql = "SELECT uuid FROM newbungeeonlinetime WHERE playername = '" + playername + "';";
+
+        if (isClosed()) {
+            openConnection();
+        }
+
+        Statement statement = getConnection().createStatement();
+
+        ResultSet resultset = statement.executeQuery(sql);
+        if (resultset.next()) {
+        	uuid = resultset.getString("uuid");
+        }
+
+        resultset.close();
+        statement.close();
+        return uuid;
     }
 
 }
