@@ -4,7 +4,9 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import java.util.UUID;
 import lu.r3flexi0n.bungeeonlinetime.utils.Language;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
@@ -34,7 +36,7 @@ public class OnlineTimeListener implements Listener {
                 try {
                     BungeeOnlineTime.SQL.addOnlineTimeSQLite(uuid, name);
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR_SAVING);
+                    player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR_SAVING)));
                     ex.printStackTrace();
                 }
             });
@@ -81,7 +83,7 @@ public class OnlineTimeListener implements Listener {
             try {
                 BungeeOnlineTime.SQL.updateOnlineTime(uuid, name, time);
             } catch (Exception ex) {
-                player.sendMessage(Language.ERROR_SAVING);
+                player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR_SAVING)));
                 ex.printStackTrace();
             }
         });

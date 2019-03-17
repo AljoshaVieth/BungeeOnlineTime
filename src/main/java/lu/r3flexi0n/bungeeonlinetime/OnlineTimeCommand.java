@@ -1,8 +1,10 @@
 package lu.r3flexi0n.bungeeonlinetime;
 
 import lu.r3flexi0n.bungeeonlinetime.utils.Language;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -15,16 +17,21 @@ public class OnlineTimeCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
 
-        if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(Language.ONLY_PLAYER);
-            return;
-        }
-        ProxiedPlayer player = (ProxiedPlayer) sender;
+//        if (!(sender instanceof ProxiedPlayer)) {
+//            sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ONLY_PLAYER)));
+//            return;
+//        }
+//        ProxiedPlayer player = (ProxiedPlayer) sender;
 
         if (args.length == 0) {
 
-            if (!player.hasPermission("onlinetime.own")) {
-                player.sendMessage(Language.NO_PERMISSION);
+            if (!(sender instanceof ProxiedPlayer)) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ONLY_PLAYER)));
+                return;
+            }
+            ProxiedPlayer player = (ProxiedPlayer) sender;
+            if (!sender.hasPermission("onlinetime.own")) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.NO_PERMISSION)));
                 return;
             }
 
@@ -33,30 +40,30 @@ public class OnlineTimeCommand extends Command {
 
                     OnlineTime onlineTime = BungeeOnlineTime.SQL.getOnlineTime(player.getUniqueId());
                     if (onlineTime == null) {
-                        player.sendMessage(Language.PLAYER_NOT_FOUND
-                                .replace("%PLAYER%", player.getName()));
+                        player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                            Language.PLAYER_NOT_FOUND.replace("%PLAYER%", player.getName()))));
                         return;
                     }
 
                     long seconds = onlineTime.getTime() / 1000;
                     int hours = (int) (seconds / 3600);
                     int minutes = (int) ((seconds % 3600) / 60);
-
-                    player.sendMessage(Language.ONLINE_TIME
+                    player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                        Language.ONLINE_TIME
                             .replace("%PLAYER%", player.getName())
                             .replace("%HOURS%", String.valueOf(hours))
-                            .replace("%MINUTES%", String.valueOf(minutes)));
+                            .replace("%MINUTES%", String.valueOf(minutes)))));
 
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR);
+                    player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR)));
                     ex.printStackTrace();
                 }
             });
 
         } else if (args.length == 2 && args[0].equals("get")) {
 
-            if (!player.hasPermission("onlinetime.others")) {
-                player.sendMessage(Language.NO_PERMISSION);
+            if (!sender.hasPermission("onlinetime.others")) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.NO_PERMISSION)));
                 return;
             }
 
@@ -65,8 +72,9 @@ public class OnlineTimeCommand extends Command {
 
                     OnlineTime onlineTime = BungeeOnlineTime.SQL.getOnlineTime(args[1]);
                     if (onlineTime == null) {
-                        player.sendMessage(Language.PLAYER_NOT_FOUND
-                                .replace("%PLAYER%", args[1]));
+                        sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                            Language.PLAYER_NOT_FOUND
+                                .replace("%PLAYER%", args[1]))));
                         return;
                     }
 
@@ -74,25 +82,26 @@ public class OnlineTimeCommand extends Command {
                     int hours = (int) (seconds / 3600);
                     int minutes = (int) ((seconds % 3600) / 60);
 
-                    player.sendMessage(Language.ONLINE_TIME
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                        Language.ONLINE_TIME
                             .replace("%PLAYER%", onlineTime.getName())
                             .replace("%HOURS%", String.valueOf(hours))
-                            .replace("%MINUTES%", String.valueOf(minutes)));
+                            .replace("%MINUTES%", String.valueOf(minutes)))));
 
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR);
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR)));
                     ex.printStackTrace();
                 }
             });
 
         } else if (args.length == 1 && args[0].equalsIgnoreCase("top")) {
 
-            if (!player.hasPermission("onlinetime.top")) {
-                player.sendMessage(Language.NO_PERMISSION);
+            if (!sender.hasPermission("onlinetime.top")) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.NO_PERMISSION)));
                 return;
             }
 
-            player.sendMessage(Language.TOP_TIME_LOADING);
+            sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.TOP_TIME_LOADING)));
 
             ProxyServer.getInstance().getScheduler().runAsync(BungeeOnlineTime.INSTANCE, () -> {
                 try {
@@ -114,18 +123,23 @@ public class OnlineTimeCommand extends Command {
                     }
                     builder.append(Language.TOP_TIME_BELOW);
 
-                    player.sendMessage(builder.toString());
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',builder.toString())));
 
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR);
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR)));
                     ex.printStackTrace();
                 }
             });
 
         } else if (args.length == 1 && args[0].equalsIgnoreCase("resetall")) {
 
-            if (!player.hasPermission("onlinetime.resetall")) {
-                player.sendMessage(Language.NO_PERMISSION);
+            if (sender instanceof ProxiedPlayer) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ONLY_CONSOLE)));
+                return;
+            }
+
+            if (!sender.hasPermission("onlinetime.resetall")) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.NO_PERMISSION)));
                 return;
             }
 
@@ -133,18 +147,18 @@ public class OnlineTimeCommand extends Command {
                 try {
 
                     BungeeOnlineTime.SQL.resetAll();
-                    player.sendMessage(Language.RESET_ALL);
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.RESET_ALL)));
 
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR);
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR)));
                     ex.printStackTrace();
                 }
             });
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("reset")) {
 
-            if (!player.hasPermission("onlinetime.reset")) {
-                player.sendMessage(Language.NO_PERMISSION);
+            if (!sender.hasPermission("onlinetime.reset")) {
+                sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.NO_PERMISSION)));
                 return;
             }
 
@@ -152,22 +166,23 @@ public class OnlineTimeCommand extends Command {
                 try {
 
                     BungeeOnlineTime.SQL.reset(args[1]);
-                    player.sendMessage(Language.RESET_PLAYER
-                            .replace("%PLAYER%", args[1]));
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.RESET_PLAYER
+                            .replace("%PLAYER%", args[1]))));
 
                 } catch (Exception ex) {
-                    player.sendMessage(Language.ERROR);
+                    sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR)));
                     ex.printStackTrace();
                 }
             });
 
         } else {
-            player.sendMessage("§7Usage:");
-            player.sendMessage("§7/onlinetime");
-            player.sendMessage("§7/onlinetime get <player>");
-            player.sendMessage("§7/onlinetime top");
-            player.sendMessage("§7/onlinetime reset <player>");
-            player.sendMessage("§7/onlinetime resetall");
+            String sb = "§7Usage: \n" +
+                "§7/onlinetime\n" +
+                "§7/onlinetime get <player>\n" +
+                "§7/onlinetime top\n" +
+                "§7/onlinetime reset <player>\n" +
+                "§7/onlinetime resetall\n";
+            sender.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', sb)));
         }
     }
 }

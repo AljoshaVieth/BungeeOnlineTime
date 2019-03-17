@@ -6,6 +6,7 @@ import net.md_5.bungee.config.Configuration;
 public class Language {
 
     public static String ONLY_PLAYER = "&7This command can only be executed by players.";
+    public static String ONLY_CONSOLE = "&7This command can only be executed by the console.";
     public static String NO_PERMISSION = "&7You do not have access to this command.";
     public static String ERROR = "&7An error occured.";
     public static String ERROR_SAVING = "&7Error while saving your onlinetime.";
@@ -20,6 +21,7 @@ public class Language {
 
     public static void create(Configuration config) {
         addDefault(config, "Language.onlyPlayer", ONLY_PLAYER);
+        addDefault(config, "Language.onlyConsole", ONLY_CONSOLE);
         addDefault(config, "Language.noPermission", NO_PERMISSION);
         addDefault(config, "Language.error", ERROR);
         addDefault(config, "Language.errorSaving", ERROR_SAVING);
@@ -35,6 +37,7 @@ public class Language {
 
     public static void load(Configuration config) {
         ONLY_PLAYER = ChatColor.translateAlternateColorCodes('&', config.getString("Language.onlyPlayer"));
+        ONLY_PLAYER = ChatColor.translateAlternateColorCodes('&', config.getString("Language.onlyConsole"));
         NO_PERMISSION = ChatColor.translateAlternateColorCodes('&', config.getString("Language.noPermission"));
         ERROR = ChatColor.translateAlternateColorCodes('&', config.getString("Language.error"));
         ERROR_SAVING = ChatColor.translateAlternateColorCodes('&', config.getString("Language.errorSaving"));
