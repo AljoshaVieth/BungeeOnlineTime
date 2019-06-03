@@ -61,7 +61,11 @@ public class RewardManager {
                 int currentKey = (Integer) pair.getKey();
                 if(currentKey > currentReward && currentKey < hours){
                     // Execute reward command
-                    sendToSpigot("command", pair.getValue().toString(), player.getServer().getInfo());
+                    String command = pair.getValue().toString();
+                    command = command.replaceAll("[user]", player.getName());
+                    command = command.replaceAll("[player]", player.getName());
+
+                    sendToSpigot("command", command, player.getServer().getInfo());
                     players.set(player.getUniqueId().toString(), currentKey);
                     try {
                         CONFIG_PROVIDER.save(players, PLAYER_FILE);
