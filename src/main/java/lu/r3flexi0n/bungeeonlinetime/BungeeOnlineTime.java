@@ -2,14 +2,9 @@ package lu.r3flexi0n.bungeeonlinetime;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,13 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
+import java.util.concurrent.TimeUnit;
+
 import lu.r3flexi0n.bungeeonlinetime.database.MySQL;
 import lu.r3flexi0n.bungeeonlinetime.database.SQL;
 import lu.r3flexi0n.bungeeonlinetime.database.SQLite;
 import lu.r3flexi0n.bungeeonlinetime.utils.JarUtil;
 import lu.r3flexi0n.bungeeonlinetime.utils.Language;
-import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -45,7 +41,11 @@ public class BungeeOnlineTime extends Plugin {
     private Integer port;
 
     public static File CONFIG_FILE;
+    public static File PLAYER_FILE;
+    public static File REWARD_FILE;
     public static ConfigurationProvider CONFIG_PROVIDER = ConfigurationProvider.getProvider(YamlConfiguration.class);
+
+    public static HashMap<Integer, String> rewards;
 
     public static final String CHANNEL = "bungeeonlinetime:get";
 
@@ -94,7 +94,6 @@ public class BungeeOnlineTime extends Plugin {
     @Override
     public void onEnable() {
         INSTANCE = this;
-
         try {
             createConfig();
             loadConfig();
@@ -127,6 +126,9 @@ public class BungeeOnlineTime extends Plugin {
         getProxy().getPluginManager().registerCommand(this, new OnlineTimeCommand("onlinetime", null, COMMAND_ALIASES.split(",")));
         getProxy().getPluginManager().registerListener(this, new OnlineTimeListener());
         getProxy().registerChannel(CHANNEL);
+
+        // Scheduler to execute RewardManager.checkReward() every 5 minutes
+        startRewardChecker();
     }
 
     private void createConfig() throws IOException {
@@ -137,9 +139,18 @@ public class BungeeOnlineTime extends Plugin {
         }
 
         CONFIG_FILE = new File(getDataFolder(), "config.yml");
+        PLAYER_FILE = new File(getDataFolder(), "players.yml");
+        REWARD_FILE = new File(getDataFolder(), "rewards.yml");
+
 
         if (!CONFIG_FILE.exists()) {
             CONFIG_FILE.createNewFile();
+        }
+        if (!PLAYER_FILE.exists()) {
+            PLAYER_FILE.createNewFile();
+        }
+        if (!REWARD_FILE.exists()) {
+            REWARD_FILE.createNewFile();
         }
 
         Configuration config = CONFIG_PROVIDER.load(CONFIG_FILE);
@@ -156,8 +167,15 @@ public class BungeeOnlineTime extends Plugin {
         addDefault(config, "MySQL.password", "abc123");
 
         Language.create(config);
-
         CONFIG_PROVIDER.save(config, CONFIG_FILE);
+
+        Configuration rewardConfig = CONFIG_PROVIDER.load(REWARD_FILE);
+        addDefault(rewardConfig, "rewards.24", "/lp user [user] promote mainTrack");
+        CONFIG_PROVIDER.save(rewardConfig, REWARD_FILE);
+
+        for(String key : rewardConfig.getSection("rewards").getKeys()){
+            rewards.put(Integer.parseInt(key), rewardConfig.getString(key));
+        }
     }
 
     private void loadConfig() throws IOException {
@@ -177,11 +195,22 @@ public class BungeeOnlineTime extends Plugin {
         }
 
         Language.load(config);
+
     }
 
     private void addDefault(Configuration config, String path, Object value) {
         if (!config.contains(path)) {
             config.set(path, value);
         }
+    }
+
+    private void startRewardChecker(){
+        // Check every 5 minutes all Player for new Rewards
+        getProxy().getScheduler().schedule(this, new Runnable() {
+            @Override
+            public void run() {
+                RewardManager.checkRewards();
+            }
+        },5, 5, TimeUnit.MINUTES);
     }
 }

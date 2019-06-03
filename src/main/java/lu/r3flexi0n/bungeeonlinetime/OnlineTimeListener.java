@@ -41,6 +41,8 @@ public class OnlineTimeListener implements Listener {
                 }
             });
         }
+        // Check for new rewards
+        RewardManager.checkReward(player);
     }
 
     @EventHandler
@@ -115,4 +117,6 @@ public class OnlineTimeListener implements Listener {
             }
         });
     }
+
+
 }
