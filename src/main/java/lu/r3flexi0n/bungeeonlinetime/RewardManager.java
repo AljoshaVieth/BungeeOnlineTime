@@ -7,17 +7,19 @@ import net.md_5.bungee.config.Configuration;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-import static lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime.*;
+import static lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime.CONFIG_PROVIDER;
+import static lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime.PLAYER_FILE;
+import static lu.r3flexi0n.bungeeonlinetime.BungeeOnlineTime.rewards;
 
 
 /**
  * Created by Aljosha on 02.06.2019
  */
 public class RewardManager {
-
+    private static final Pattern PLAYER_REPLACE_PATTERN = Pattern.compile("(\\[player]|\\[user])");
 
     public static void checkRewards(){
         for (ProxiedPlayer player: BungeeOnlineTime.INSTANCE.getProxy().getPlayers()) {
@@ -38,11 +40,12 @@ public class RewardManager {
             seconds = onlineTime.getTime() / 1000;
         }
         int hours = (int) (seconds / 3600);
-        Configuration players = null;
+        Configuration players;
         try {
             players = CONFIG_PROVIDER.load(PLAYER_FILE);
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
         if(players.get((player.getUniqueId().toString())) == null){
             players.set(player.getUniqueId().toString(), 0);
@@ -53,31 +56,25 @@ public class RewardManager {
             }
         }
         // compare player time with times in Rewards Config
-        if(players != null){
-            Integer currentReward = players.getInt((player.getUniqueId().toString()));
-            Iterator it = rewards.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry)it.next();
-                int currentKey = (Integer) pair.getKey();
-                if(currentKey > currentReward && currentKey < hours){
-                    // Execute reward command
-                    String command = pair.getValue().toString();
-                    command = command.replaceAll("[user]", player.getName());
-                    command = command.replaceAll("[player]", player.getName());
+        int currentReward = players.getInt((player.getUniqueId().toString()));
+        for (Map.Entry<Integer, String> pair : rewards.entrySet()) {
+            int currentKey = pair.getKey();
+            if (currentKey > currentReward && currentKey < hours) {
+                // Execute reward command
+                String command = PLAYER_REPLACE_PATTERN.matcher(pair.getValue())
+                        .replaceAll(pair.getValue());
 
-                    sendToSpigot("command", command, player.getServer().getInfo());
-                    players.set(player.getUniqueId().toString(), currentKey);
-                    try {
-                        CONFIG_PROVIDER.save(players, PLAYER_FILE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
+                sendToSpigot("command", command, player.getServer().getInfo());
+                players.set(player.getUniqueId().toString(), currentKey);
+                try {
+                    CONFIG_PROVIDER.save(players, PLAYER_FILE);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                it.remove(); // avoids a ConcurrentModificationException
+                break;
             }
-
         }
+
     }
 
     private static void sendToSpigot(String channel, String message, ServerInfo server) {
