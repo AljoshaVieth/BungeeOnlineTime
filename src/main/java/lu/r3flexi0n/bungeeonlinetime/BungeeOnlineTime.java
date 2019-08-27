@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class BungeeOnlineTime extends Plugin {
 
     public static boolean MYSQL_ENABLED = false;
     public static String COMMAND_ALIASES = "ot,pt,playtime";
-    public static List<String> DISABLED_SERVERS = Arrays.asList("lobby");
+    public static List<String> DISABLED_SERVERS = Collections.singletonList("lobby");
     public static int TOP_ONLINETIMES_LIMIT = 10;
 
     private String host, database, username, password;
@@ -45,7 +45,7 @@ public class BungeeOnlineTime extends Plugin {
     public static File REWARD_FILE;
     public static ConfigurationProvider CONFIG_PROVIDER = ConfigurationProvider.getProvider(YamlConfiguration.class);
 
-    public static HashMap<Integer, String> rewards;
+    public static Map<Integer, String> rewards = new HashMap<>();
 
     public static final String CHANNEL = "bungeeonlinetime:get";
 
@@ -173,7 +173,7 @@ public class BungeeOnlineTime extends Plugin {
         addDefault(rewardConfig, "rewards.24", "/lp user [user] promote mainTrack");
         CONFIG_PROVIDER.save(rewardConfig, REWARD_FILE);
 
-        for(String key : rewardConfig.getSection("rewards").getKeys()){
+        for (String key : rewardConfig.getSection("rewards").getKeys()) {
             rewards.put(Integer.parseInt(key), rewardConfig.getString(key));
         }
     }
@@ -204,13 +204,8 @@ public class BungeeOnlineTime extends Plugin {
         }
     }
 
-    private void startRewardChecker(){
+    private void startRewardChecker() {
         // Check every 5 minutes all Player for new Rewards
-        getProxy().getScheduler().schedule(this, new Runnable() {
-            @Override
-            public void run() {
-                RewardManager.checkRewards();
-            }
-        },5, 5, TimeUnit.MINUTES);
+        getProxy().getScheduler().schedule(this, RewardManager::checkRewards, 5, 5, TimeUnit.MINUTES);
     }
 }
