@@ -2,7 +2,8 @@ package lu.r3flexi0n.bungeeonlinetime;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import java.util.UUID;
+import lu.r3flexi0n.bungeeonlinetime.database.TimeResult;
+import lu.r3flexi0n.bungeeonlinetime.repository.PlayerRepository;
 import lu.r3flexi0n.bungeeonlinetime.utils.Language;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
@@ -17,32 +18,25 @@ import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.util.Optional;
+import java.util.UUID;
+
 public class OnlineTimeListener implements Listener {
+    private final PlayerRepository repository;
+
+    public OnlineTimeListener(PlayerRepository repository) {
+        this.repository = repository;
+    }
 
     @EventHandler
     public void onJoin(PostLoginEvent e) {
         ProxiedPlayer player = e.getPlayer();
         UUID uuid = player.getUniqueId();
-        String name = player.getName();
-
         if (!player.hasPermission("onlinetime.save")) {
             return;
         }
-
+        repository.addPlayer(e.getPlayer());
         BungeeOnlineTime.ONLINE_PLAYERS.put(uuid, new OnlinePlayer());
-
-        if (!BungeeOnlineTime.MYSQL_ENABLED) {
-            ProxyServer.getInstance().getScheduler().runAsync(BungeeOnlineTime.INSTANCE, () -> {
-                try {
-                    BungeeOnlineTime.SQL.addOnlineTimeSQLite(uuid, name);
-                } catch (Exception ex) {
-                    player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR_SAVING)));
-                    ex.printStackTrace();
-                }
-            });
-        }
-        // Check for new rewards
-        RewardManager.checkReward(player);
     }
 
     @EventHandler
@@ -66,7 +60,6 @@ public class OnlineTimeListener implements Listener {
     public void onLeave(PlayerDisconnectEvent e) {
         ProxiedPlayer player = e.getPlayer();
         UUID uuid = player.getUniqueId();
-        String name = player.getName();
 
         OnlinePlayer onlinePlayer = BungeeOnlineTime.ONLINE_PLAYERS.get(uuid);
         if (onlinePlayer == null) {
@@ -77,15 +70,15 @@ public class OnlineTimeListener implements Listener {
         onlinePlayer.leaveAFK();
 
         long time = onlinePlayer.getNoAFKTime();
-        if (time < 5000) {
+        if (time < 5) {
             return;
         }
 
         ProxyServer.getInstance().getScheduler().runAsync(BungeeOnlineTime.INSTANCE, () -> {
             try {
-                BungeeOnlineTime.SQL.updateOnlineTime(uuid, name, time);
+                repository.updateOnlineTime(uuid, time);
             } catch (Exception ex) {
-                player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&',Language.ERROR_SAVING)));
+                player.sendMessage(new TextComponent(ChatColor.translateAlternateColorCodes('&', Language.ERROR_SAVING)));
                 ex.printStackTrace();
             }
         });
@@ -106,15 +99,12 @@ public class OnlineTimeListener implements Listener {
         Server server = player.getServer();
 
         ProxyServer.getInstance().getScheduler().runAsync(BungeeOnlineTime.INSTANCE, () -> {
-            try {
-                OnlineTime onlineTime = BungeeOnlineTime.SQL.getOnlineTime(uuid);
-
+            Optional<TimeResult> time = repository.getOnlineTime(uuid);
+            time.ifPresent(timeResult -> {
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                out.writeLong(onlineTime.getTime() / 1000);
+                out.writeLong(timeResult.getSeconds());
                 server.sendData(BungeeOnlineTime.CHANNEL, out.toByteArray());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            });
         });
     }
 

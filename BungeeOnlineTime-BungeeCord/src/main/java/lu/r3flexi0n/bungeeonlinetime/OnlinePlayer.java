@@ -9,30 +9,34 @@ public class OnlinePlayer {
     private long afkJoin;
 
     public OnlinePlayer() {
-        this.joinTime = System.currentTimeMillis();
+        this.joinTime = currentSeconds();
     }
 
     public long getNoAFKTime() {
-        return System.currentTimeMillis() - joinTime - afkTime - getCurrentAFKTime();
+        return (currentSeconds() - joinTime - afkTime - getCurrentAFKTime());
     }
 
     public void joinAFK() {
         if (afkJoin == 0) {
-            afkJoin = System.currentTimeMillis();
+            afkJoin = currentSeconds();
         }
     }
 
     public void leaveAFK() {
         if (afkJoin > 0) {
-            afkTime += System.currentTimeMillis() - afkJoin;
+            afkTime += currentSeconds() - afkJoin;
             afkJoin = 0;
         }
     }
 
     private long getCurrentAFKTime() {
         if (afkJoin > 0) {
-            return System.currentTimeMillis() - afkJoin;
+            return currentSeconds() - afkJoin;
         }
         return 0;
+    }
+
+    private static long currentSeconds() {
+        return System.currentTimeMillis() / 1000;
     }
 }

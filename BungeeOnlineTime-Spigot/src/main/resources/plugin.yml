@@ -1,0 +1,5 @@
+name: LocalExecute
+version: 1.0.0
+main: de.sirywell.localexecute.LocalExecutePlugin
+
+api-version: "1.14"
