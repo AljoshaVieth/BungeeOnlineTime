@@ -166,7 +166,7 @@ public class PlayerRepository extends Repository {
                 + "BEGIN\n"
                 + "    INSERT INTO users (uuid, name)\n"
                 + "    VALUES (uuid_in, name_in)\n"
-                + "    ON DUPLICATE KEY UPDATE name = name;\n"
+                + "    ON DUPLICATE KEY UPDATE name = name_in;\n"
                 + "END;\n"
                 + "\n"
                 + "DROP FUNCTION IF EXISTS getIDByUUID;\n"
